@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jemima ✦ Booking Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rose:#E8385A;--rose-dk:#B91C3C;--rose-lt:#FFF0F3;--blush:#FDF5F7;--cream:#FEFAF8;
+  --sage:#0D9670;--sage-lt:#ECFDF5;--amber:#C4760A;--amber-lt:#FFFBEB;
+  --ink:#18120F;--mid:#7A6A65;--border:#EDE6E3;--white:#FFFFFF;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
+.header{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;letter-spacing:0.02em;}
+.brand-tag{font-size:11px;color:var(--mid);letter-spacing:0.08em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:24px;}
+.hkpi{text-align:right;}
+.hkpi-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--mid);}
+.hkpi-val{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;line-height:1.1;}
+.hkpi-val.green{color:var(--sage);}
+.hkpi-val.amber{color:var(--amber);}
+.sync{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:20px;background:var(--blush);border:1px solid var(--border);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#D1C5C0;transition:background 0.3s;flex-shrink:0;}
+.sync-dot.saving{background:var(--amber);animation:pulse 1s infinite;}
+.sync-dot.saved{background:var(--sage);}
+.sync-dot.error{background:var(--rose);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.sync-lbl{font-size:11px;color:var(--mid);white-space:nowrap;}
+.nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;display:flex;}
+.nav-btn{padding:12px 20px;font-size:13px;font-weight:500;color:var(--mid);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.nav-btn:hover{color:var(--ink);}
+.nav-btn.active{color:var(--rose);border-bottom-color:var(--rose);}
+.content{max-width:920px;margin:0 auto;padding:32px 24px;}
+.page{display:none;animation:fi 0.2s ease;}
+.page.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;margin-bottom:4px;}
+.section-sub{color:var(--mid);font-size:13px;margin-bottom:28px;}
+.card{background:var(--white);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.card-body{padding:28px;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);}
+.fg input,.fg select,.fg textarea{border:1.5px solid var(--border);border-radius:8px;padding:11px 13px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--blush);transition:border-color 0.15s,background 0.15s;outline:none;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--rose);background:var(--white);}
+.fg textarea{resize:vertical;min-height:72px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.full{grid-column:1/-1;}
+.pay-hero{background:linear-gradient(135deg,var(--rose-dk),var(--rose));border-radius:12px;padding:20px 24px;color:#fff;display:flex;align-items:center;justify-content:space-between;opacity:0;transform:translateY(4px);transition:opacity 0.25s,transform 0.25s;pointer-events:none;}
+.pay-hero.show{opacity:1;transform:none;pointer-events:auto;}
+.ph-label{font-size:11px;opacity:0.7;text-transform:uppercase;letter-spacing:0.08em;}
+.ph-val{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;line-height:1;}
+.btn-log{width:100%;padding:14px;background:var(--rose);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:24px;transition:all 0.15s;}
+.btn-log:hover{background:var(--rose-dk);transform:translateY(-1px);}
+.btn-log:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.toolbar{display:flex;gap:12px;margin-bottom:16px;align-items:center;}
+.search{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--white);}
+.search:focus{border-color:var(--rose);}
+.fsel{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--white);cursor:pointer;}
+.btn-ref{border:1.5px solid var(--border);border-radius:8px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);cursor:pointer;color:var(--mid);transition:all 0.15s;white-space:nowrap;}
+.btn-ref:hover{border-color:var(--rose);color:var(--rose);}
+.job-card{background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:box-shadow 0.15s;}
+.job-card:hover{box-shadow:var(--shadow-md);}
+.job-card.paid{border-left:3px solid var(--sage);}
+.job-card.pending{border-left:3px solid var(--amber);}
+.jc-main{display:grid;grid-template-columns:1fr auto;align-items:center;padding:16px 18px;gap:16px;}
+.jc-co{font-weight:600;font-size:15px;}
+.jc-meta{font-size:12px;color:var(--mid);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;}
+.jc-meta span::before{content:'·';margin-right:10px;opacity:0.4;}
+.jc-meta span:first-child::before{display:none;}
+.jc-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.jc-pay{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;}
+.jc-acts{display:flex;align-items:center;gap:8px;}
+.badge{display:inline-flex;align-items:center;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.badge.pending{background:var(--amber-lt);color:var(--amber);}
+.badge.paid{background:var(--sage-lt);color:var(--sage);}
+.del{background:none;border:none;color:#D1C5C0;cursor:pointer;font-size:15px;padding:2px 5px;border-radius:4px;transition:color 0.15s;line-height:1;}
+.del:hover{color:var(--rose);}
+.jc-notes{padding:10px 18px 14px;font-size:12px;color:var(--mid);border-top:1px solid var(--border);font-style:italic;}
+.empty{text-align:center;padding:64px 20px;color:var(--mid);}
+.empty-icon{font-size:36px;margin-bottom:12px;}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;margin-top:6px;line-height:1;}
+.kpi-val.green{color:var(--sage);}
+.kpi-val.amber{color:var(--amber);}
+.kpi-val.rose{color:var(--rose);}
+.kpi-sub{font-size:11px;color:var(--mid);margin-top:4px;}
+.m-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+.m-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;padding:18px 22px;border-bottom:1px solid var(--border);}
+.m-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 22px;font-size:13px;border-bottom:1px solid var(--border);}
+.m-row:last-child{border-bottom:none;}
+.m-row.hdr{background:#F9F5F3;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);}
+.m-row:not(.hdr):nth-child(even){background:var(--blush);}
+.me{color:var(--sage);font-weight:600;}
+.mb{color:var(--mid);}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.ins-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+.ins-card.full{grid-column:1/-1;}
+.ins-hdr{padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;}
+.ins-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border);font-size:13px;}
+.ins-row:last-child{border-bottom:none;}
+.ins-rank{font-family:'DM Mono',monospace;font-size:11px;color:var(--mid);width:18px;flex-shrink:0;}
+.ins-name{flex:1;font-weight:500;}
+.ins-stat{color:var(--rose);font-weight:600;font-size:12px;}
+.fun-grid{display:grid;grid-template-columns:repeat(3,1fr);}
+.fun-cell{padding:20px 22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.fun-cell:nth-child(3n){border-right:none;}
+.fun-cell:nth-last-child(-n+3){border-bottom:none;}
+.fun-label{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);font-weight:600;}
+.fun-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--rose-dk);margin-top:4px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:999;box-shadow:var(--shadow-md);}
+.toast.show{transform:translateY(0);opacity:1;}
+.lo{position:fixed;inset:0;background:rgba(254,250,248,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity 0.4s;}
+.lo.hidden{opacity:0;pointer-events:none;}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--rose);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lo-title{font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:6px;color:var(--ink);}
+.lo p{font-size:13px;color:var(--mid);}
+@media(max-width:600px){
+  .header{padding:0 16px;}.header-right{gap:12px;}.hkpi{display:none;}
+  .nav{padding:0 8px;}.nav-btn{padding:12px 10px;font-size:12px;}
+  .content{padding:20px 14px;}.form-grid{grid-template-columns:1fr;}.full{grid-column:1;}
+  .kpi-row{grid-template-columns:1fr;}.ins-grid{grid-template-columns:1fr;}
+  .fun-grid{grid-template-columns:1fr 1fr;}
+}
+/* PIN SCREEN */
+.pin-screen{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.4s;}
+.pin-screen.hidden{opacity:0;pointer-events:none;}
+.pin-brand{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:6px;color:var(--ink);}
+.pin-sub{font-size:12px;color:var(--mid);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:36px;}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all 0.2s;}
+.pin-dot.filled{background:var(--rose);border-color:var(--rose);}
+.pin-dot.error{background:var(--rose);border-color:var(--rose);animation:shake 0.4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,72px);gap:12px;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--ink);cursor:pointer;transition:all 0.15s;box-shadow:var(--shadow);}
+.pin-key:hover{background:var(--rose-lt);border-color:var(--rose);color:var(--rose);}
+.pin-key:active{transform:scale(0.93);}
+.pin-key.del{font-family:'DM Sans',sans-serif;font-size:18px;color:var(--mid);}
+.pin-error{font-size:12px;color:var(--rose);margin-top:18px;height:16px;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-brand">Jemima ✦</div>
+  <div class="pin-sub">Booking Tracker</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+    <div class="pin-dot" id="pd4"></div>
+    <div class="pin-dot" id="pd5"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" style="visibility:hidden"></button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<div class="lo" id="lo">
+  <div class="spinner"></div>
+  <div class="lo-title">Jemima ✦</div>
+  <p>Loading from Google Sheets…</p>
+</div>
+
+<header class="header">
+  <div>
+    <div class="brand-name">Jemima ✦</div>
+    <div class="brand-tag">Booking Tracker</div>
+  </div>
+  <div class="header-right">
+    <div class="hkpi">
+      <div class="hkpi-label">Received</div>
+      <div class="hkpi-val green" id="h-earned">—</div>
+    </div>
+    <div class="hkpi">
+      <div class="hkpi-label">Owed</div>
+      <div class="hkpi-val amber" id="h-owed">—</div>
+    </div>
+    <div class="sync">
+      <div class="sync-dot" id="sdot"></div>
+      <span class="sync-lbl" id="slbl">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="goNav('add',this)">➕ Add Job</button>
+  <button class="nav-btn" onclick="goNav('jobs',this)">📋 All Jobs</button>
+  <button class="nav-btn" onclick="goNav('summary',this)">📊 Summary</button>
+  <button class="nav-btn" onclick="goNav('insights',this)">🌟 Insights</button>
+</nav>
+
+<div class="content">
+
+  <div class="page active" id="page-add">
+    <div class="section-title">Log a New Job</div>
+    <div class="section-sub">Saves directly to Google Sheets — permanent, shareable, never lost.</div>
+    <div class="card"><div class="card-body">
+      <div class="form-grid">
+        <div class="fg"><label>Job Date</label><input type="date" id="f-date"></div>
+        <div class="fg"><label>Company / Client</label><input type="text" id="f-co" placeholder="e.g. Vogue Italia"></div>
+        <div class="fg"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Milan, Italy"></div>
+        <div class="fg"><label>Job Type</label>
+          <select id="f-type"><option value="">Select…</option><option>Editorial</option><option>Commercial</option><option>Runway</option><option>E-commerce</option><option>Advertorial</option><option>Fitting</option><option>Test</option><option>Other</option></select>
+        </div>
+        <div class="fg"><label>Currency</label>
+          <select id="f-cur"><option value="GBP">GBP (£)</option><option value="EUR">EUR (€)</option><option value="USD">USD ($)</option><option value="AED">AED</option><option value="CHF">CHF</option><option value="Other">Other</option></select>
+        </div>
+        <div class="fg"><label>Duration (days)</label><input type="number" id="f-days" placeholder="1" min="0.5" step="0.5"></div>
+        <div class="fg full"><label>💰 Your Pay — what goes in your pocket</label>
+          <input type="number" id="f-pay" placeholder="0.00" step="0.01" oninput="updateHero()">
+        </div>
+        <div class="pay-hero full" id="pay-hero">
+          <div><div class="ph-label">You take home</div><div class="ph-val" id="ph-val">£0.00</div></div>
+          <div style="font-size:13px;opacity:0.7" id="ph-cur">GBP</div>
+        </div>
+        <div class="fg full"><label>Notes</label>
+          <textarea id="f-notes" placeholder="Usage rights, options, recall dates, booker contact…"></textarea>
+        </div>
+      </div>
+      <button class="btn-log" id="log-btn" onclick="logJob()">Log This Job ➡️</button>
+    </div></div>
+  </div>
+
+  <div class="page" id="page-jobs">
+    <div class="section-title">All Jobs</div>
+    <div class="section-sub">Tap a status badge to mark paid. Hit ↻ Refresh to pull the latest from Sheets.</div>
+    <div class="toolbar">
+      <input class="search" id="srch" type="text" placeholder="Search company, location…" oninput="renderJobs()">
+      <select class="fsel" id="fstat" onchange="renderJobs()">
+        <option value="">All jobs</option><option value="pending">Pending</option><option value="paid">Paid</option>
+      </select>
+      <button class="btn-ref" onclick="refresh()">↻ Refresh</button>
+    </div>
+    <div id="jobs-list"></div>
+  </div>
+
+  <div class="page" id="page-summary">
+    <div class="section-title">Summary</div>
+    <div class="section-sub">Live earnings pulled from Google Sheets.</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">💰 Total Received</div><div class="kpi-val green" id="s-earned">—</div><div class="kpi-sub" id="s-esub"></div></div>
+      <div class="kpi"><div class="kpi-label">⏳ Still Owed</div><div class="kpi-val amber" id="s-owed">—</div><div class="kpi-sub" id="s-osub"></div></div>
+      <div class="kpi"><div class="kpi-label">📋 Total Booked</div><div class="kpi-val rose" id="s-total">—</div><div class="kpi-sub" id="s-tsub"></div></div>
+    </div>
+    <div class="m-card">
+      <h3>Monthly Breakdown</h3>
+      <div class="m-row hdr"><span>Month</span><span>Received</span><span>All Booked</span></div>
+      <div id="m-rows"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-insights">
+    <div class="section-title">Insights</div>
+    <div class="section-sub">Auto-calculated from all logged jobs in Sheets.</div>
+    <div class="ins-grid">
+      <div class="ins-card"><div class="ins-hdr">🏆 Top Clients</div><div id="tc"></div></div>
+      <div class="ins-card"><div class="ins-hdr">📍 Top Locations</div><div id="tl"></div></div>
+      <div class="ins-card full"><div class="ins-hdr">✨ Fun Stats</div><div class="fun-grid" id="fg"></div></div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbwRmvaTnEHWHhI4Nok-G49pz-R3CW3COLigYPRtge9VwZ_yjBY3RiDMNfDSJZyk27FP/exec';
+let jobs=[];
+let curPage='add';
+
+// ── SHEETS ─────────────────────────────────────────────────────────────────
+async function sheetsRead(){
+  const r=await fetch(API+'?action=read');
+  const rows=await r.json();
+  return rows.slice(1).filter(r=>r[0]!=='').map(r=>({
+    id:Number(r[0]),date:r[1]||'',company:r[2]||'',location:r[3]||'',
+    type:r[4]||'',currency:r[5]||'GBP',days:Number(r[6])||1,pay:Number(r[7])||0,
+    paid:r[8]==='TRUE'||r[8]===true||r[8]==='true',datePaid:r[9]||'',notes:r[10]||'',
+  }));
+}
+async function sheetsWrite(){
+  sync('saving');
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({action:'write',jobs})});
+    sync('saved'); setTimeout(()=>sync('idle'),3000);
+  }catch(e){sync('error');toast('⚠️ Save failed');}
+}
+async function refresh(){
+  sync('saving'); document.getElementById('slbl').textContent='Refreshing…';
+  try{
+    jobs=await sheetsRead(); renderPage(); updateHeader();
+    sync('saved'); toast('✅ Refreshed from Google Sheets');
+    setTimeout(()=>sync('idle'),3000);
+  }catch(e){sync('error');toast('⚠️ Could not reach Google Sheets');}
+}
+function sync(s){
+  const d=document.getElementById('sdot'),l=document.getElementById('slbl');
+  d.className='sync-dot'+(s!=='idle'?' '+s:'');
+  l.textContent={saving:'Saving…',saved:'Saved ✓',error:'Error',idle:'Google Sheets ✓'}[s]||'';
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function goNav(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active'); el.classList.add('active');
+  curPage=p; renderPage();
+}
+function renderPage(){
+  if(curPage==='jobs') renderJobs();
+  if(curPage==='summary') renderSummary();
+  if(curPage==='insights') renderInsights();
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+const S={GBP:'£',EUR:'€',USD:'$',AED:'AED ',CHF:'CHF ',Other:''};
+function sym(c){return S[c]||c+' ';}
+function fmt(c,v){return sym(c)+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtP(v){return '£'+Number(v||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// ── ADD JOB ────────────────────────────────────────────────────────────────
+function updateHero(){
+  const pay=parseFloat(document.getElementById('f-pay').value)||0;
+  const cur=document.getElementById('f-cur').value;
+  document.getElementById('pay-hero').classList.toggle('show',pay>0);
+  document.getElementById('ph-val').textContent=fmt(cur,pay);
+  document.getElementById('ph-cur').textContent=cur;
+}
+async function logJob(){
+  const date=document.getElementById('f-date').value;
+  const co=document.getElementById('f-co').value.trim();
+  if(!date||!co){toast('⚠️ Date and Company are required');return;}
+  const btn=document.getElementById('log-btn');
+  btn.disabled=true; btn.textContent='Saving to Sheets…';
+  jobs.unshift({
+    id:Date.now(), date, company:co,
+    location:document.getElementById('f-loc').value.trim(),
+    type:document.getElementById('f-type').value,
+    currency:document.getElementById('f-cur').value,
+    days:parseFloat(document.getElementById('f-days').value)||1,
+    pay:parseFloat(document.getElementById('f-pay').value)||0,
+    notes:document.getElementById('f-notes').value.trim(),
+    paid:false, datePaid:'',
+  });
+  await sheetsWrite();
+  ['f-date','f-co','f-loc','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-type').value='';
+  document.getElementById('f-cur').value='GBP';
+  document.getElementById('f-days').value='';
+  document.getElementById('f-pay').value='';
+  document.getElementById('pay-hero').classList.remove('show');
+  updateHeader();
+  btn.disabled=false; btn.textContent='Log This Job ➡️';
+  toast('✅ '+co+' saved to Google Sheets!');
+}
+
+// ── JOBS ───────────────────────────────────────────────────────────────────
+function renderJobs(){
+  const q=(document.getElementById('srch')?.value||'').toLowerCase();
+  const st=document.getElementById('fstat')?.value||'';
+  let list=jobs;
+  if(q) list=list.filter(j=>[j.company,j.location,j.type,j.notes].some(f=>f&&f.toLowerCase().includes(q)));
+  if(st==='paid') list=list.filter(j=>j.paid);
+  if(st==='pending') list=list.filter(j=>!j.paid);
+  const el=document.getElementById('jobs-list');
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><p>${jobs.length?'No jobs match filter.':'No jobs yet!'}</p></div>`;return;}
+  el.innerHTML=list.map(j=>{
+    const ds=j.date?new Date(j.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+    const meta=[j.location,j.type,j.days+(j.days==1?' day':' days')].filter(Boolean);
+    const pd=j.paid&&j.datePaid?` · paid ${new Date(j.datePaid+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`:'';
+    return `<div class="job-card ${j.paid?'paid':'pending'}">
+      <div class="jc-main">
+        <div>
+          <div class="jc-co">${j.company}</div>
+          <div class="jc-meta"><span>${ds}</span>${meta.map(m=>`<span>${m}</span>`).join('')}${pd?`<span style="color:var(--sage)">${pd}</span>`:''}</div>
+        </div>
+        <div class="jc-right">
+          <div class="jc-pay">${fmt(j.currency,j.pay)}</div>
+          <div class="jc-acts">
+            <button class="badge ${j.paid?'paid':'pending'}" onclick="togglePaid(${j.id})">${j.paid?'✓ Paid':'⏳ Pending'}</button>
+            <button class="del" onclick="delJob(${j.id})" title="Delete">✕</button>
+          </div>
+        </div>
+      </div>${j.notes?`<div class="jc-notes">${j.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+async function togglePaid(id){
+  const j=jobs.find(j=>j.id===id); if(!j) return;
+  j.paid=!j.paid; j.datePaid=j.paid?new Date().toISOString().split('T')[0]:'';
+  renderJobs(); updateHeader(); await sheetsWrite();
+  toast(j.paid?'✅ Marked paid — '+j.company:'↩️ Marked pending — '+j.company);
+}
+async function delJob(id){
+  if(!confirm('Remove this job from Google Sheets?')) return;
+  jobs=jobs.filter(j=>j.id!==id); renderJobs(); updateHeader(); await sheetsWrite();
+  toast('🗑️ Removed from Sheets');
+}
+
+// ── SUMMARY ────────────────────────────────────────────────────────────────
+function renderSummary(){
+  const earned=jobs.filter(j=>j.paid).reduce((s,j)=>s+j.pay,0);
+  const owed=jobs.filter(j=>!j.paid).reduce((s,j)=>s+j.pay,0);
+  const total=jobs.reduce((s,j)=>s+j.pay,0);
+  document.getElementById('s-earned').textContent=fmtP(earned);
+  document.getElementById('s-esub').textContent=jobs.filter(j=>j.paid).length+' jobs paid';
+  document.getElementById('s-owed').textContent=fmtP(owed);
+  document.getElementById('s-osub').textContent=jobs.filter(j=>!j.paid).length+' jobs pending';
+  document.getElementById('s-total').textContent=fmtP(total);
+  document.getElementById('s-tsub').textContent=jobs.length+' total jobs';
+  const MONTHS=[
+    ['May 2026','2026-05'],['Jun 2026','2026-06'],['Jul 2026','2026-07'],['Aug 2026','2026-08'],
+    ['Sep 2026','2026-09'],['Oct 2026','2026-10'],['Nov 2026','2026-11'],['Dec 2026','2026-12'],
+    ['Jan 2027','2027-01'],['Feb 2027','2027-02'],['Mar 2027','2027-03'],['Apr 2027','2027-04'],
+    ['May 2027','2027-05'],['Jun 2027','2027-06'],['Jul 2027','2027-07'],['Aug 2027','2027-08'],
+    ['Sep 2027','2027-09'],['Oct 2027','2027-10'],['Nov 2027','2027-11'],['Dec 2027','2027-12'],
+  ];
+  document.getElementById('m-rows').innerHTML=MONTHS.map(([lbl,ym])=>{
+    const mj=jobs.filter(j=>j.date&&j.date.substring(0,7)===ym);
+    const me=mj.filter(j=>j.paid).reduce((s,j)=>s+j.pay,0);
+    const mb=mj.reduce((s,j)=>s+j.pay,0);
+    return `<div class="m-row" style="${!mj.length?'opacity:0.35':''}">
+      <span style="font-weight:${mj.length?600:400}">${lbl}</span>
+      <span class="me">${me>0?fmtP(me):'—'}</span>
+      <span class="mb">${mb>0?fmtP(mb):'—'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── INSIGHTS ───────────────────────────────────────────────────────────────
+function topN(key,n=8){
+  const m={};
+  jobs.forEach(j=>{const v=j[key]||'Unknown';if(!m[v])m[v]={name:v,count:0,pay:0};m[v].count++;m[v].pay+=j.pay;});
+  return Object.values(m).sort((a,b)=>b.pay-a.pay).slice(0,n);
+}
+function renderInsights(){
+  const ir=(items,fb)=>items.length
+    ?items.map((x,i)=>`<div class="ins-row"><span class="ins-rank">${i+1}</span><span class="ins-name">${x.name||'—'}</span><span class="ins-stat">${x.count} job${x.count>1?'s':''} · £${x.pay.toLocaleString('en-GB',{maximumFractionDigits:0})}</span></div>`).join('')
+    :`<div style="padding:20px;text-align:center;color:var(--mid);font-size:13px">${fb}</div>`;
+  document.getElementById('tc').innerHTML=ir(topN('company'),'Log jobs to see top clients!');
+  document.getElementById('tl').innerHTML=ir(topN('location'),'Log jobs to see top locations!');
+  const days=jobs.reduce((s,j)=>s+j.days,0);
+  const avg=days>0?jobs.reduce((s,j)=>s+j.pay,0)/days:0;
+  const big=jobs.length?Math.max(...jobs.map(j=>j.pay)):0;
+  document.getElementById('fg').innerHTML=[
+    ['⭐ Avg Day Rate', avg>0?'£'+Math.round(avg).toLocaleString('en-GB'):'—'],
+    ['💸 Biggest Job',  big>0?'£'+big.toLocaleString('en-GB',{maximumFractionDigits:0}):'—'],
+    ['📦 Total Days',   days>0?days.toFixed(1):'—'],
+    ['🌍 Clients',      [...new Set(jobs.map(j=>j.company))].length||'—'],
+    ['🗺️ Locations',    [...new Set(jobs.filter(j=>j.location).map(j=>j.location))].length||'—'],
+    ['✅ % Paid',       jobs.length?Math.round(jobs.filter(j=>j.paid).length/jobs.length*100)+'%':'—'],
+  ].map(([l,v])=>`<div class="fun-cell"><div class="fun-label">${l}</div><div class="fun-val">${v}</div></div>`).join('');
+}
+
+// ── HEADER ─────────────────────────────────────────────────────────────────
+function updateHeader(){
+  document.getElementById('h-earned').textContent=fmtP(jobs.filter(j=>j.paid).reduce((s,j)=>s+j.pay,0));
+  document.getElementById('h-owed').textContent=fmtP(jobs.filter(j=>!j.paid).reduce((s,j)=>s+j.pay,0));
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let tt;
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),3200);}
+
+// ── PIN ────────────────────────────────────────────────────────────────────
+const PIN='091021';
+let pinEntry='';
+function pinKey(d){
+  if(pinEntry.length>=6) return;
+  pinEntry+=d;
+  updateDots();
+  if(pinEntry.length===6) setTimeout(checkPin,120);
+}
+function pinDel(){
+  pinEntry=pinEntry.slice(0,-1);
+  updateDots();
+  document.getElementById('pin-error').textContent='';
+}
+function updateDots(){
+  for(let i=0;i<6;i++){
+    const dot=document.getElementById('pd'+i);
+    dot.className='pin-dot'+(i<pinEntry.length?' filled':'');
+  }
+}
+function checkPin(){
+  if(pinEntry===PIN){
+    sessionStorage.setItem('jemima_auth','1');
+    document.getElementById('pin-screen').classList.add('hidden');
+    bootApp();
+  } else {
+    for(let i=0;i<6;i++) document.getElementById('pd'+i).className='pin-dot error';
+    document.getElementById('pin-error').textContent='Incorrect PIN — try again';
+    setTimeout(()=>{
+      pinEntry='';
+      for(let i=0;i<6;i++) document.getElementById('pd'+i).className='pin-dot';
+      document.getElementById('pin-error').textContent='';
+    },800);
+  }
+}
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+async function bootApp(){
+  sync('saving'); document.getElementById('slbl').textContent='Loading…';
+  try{
+    jobs=await sheetsRead(); updateHeader();
+    sync('saved'); setTimeout(()=>sync('idle'),3000);
+  }catch(e){
+    sync('error'); toast('⚠️ Could not load Google Sheets — check Apps Script deployment');
+  }
+  document.getElementById('lo').classList.add('hidden');
+}
+
+if(sessionStorage.getItem('jemima_auth')==='1'){
+  document.getElementById('pin-screen').classList.add('hidden');
+  bootApp();
+}
+</script>
+</body>
+</html>
